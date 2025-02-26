@@ -18,7 +18,7 @@ environment.
     set -g @treemux-editor-position 'bottom'
 
 > I don't like the default 'prefix + Tab' key binding. Can I change it to be
-'prefix + e'?
+> 'prefix + e'?
 
     set -g @treemux-tree 'e'
 
@@ -27,23 +27,23 @@ environment.
     set -g @treemux-tree-focus 'w'
 
 > The default sidebar width is 40 columns. I want the sidebar to be wider by
-default!
+> default!
 
     set -g @treemux-tree-width 60
 
 > The default editor size is 70%. I want the nvim editor pane to be wider by
-default!
+> default!
 
     set -g @treemux-editor-size '80%'
 
-> When I open a file from the tree, the focus moves to the editor. I want to 
-stay in the tree!
+> When I open a file from the tree, the focus moves to the editor. I want to
+> stay in the tree!
 
     set -g @treemux-open-focus 'tree'
 
 > Specify Neovim path or set NVIM_APPNAME environment variable to separate the environment from the main nvim config (default: `nvim`)
 
-    set -g @treemux-nvim-command '/path/to/nvim'  
+    set -g @treemux-nvim-command '/path/to/nvim'
     set -g @treemux-nvim-command 'NVIM_APPNAME=nvim-treemux nvim'
 
 > Specify Python path with `pynvim` installed (default: `/usr/bin/python3`)
@@ -52,4 +52,8 @@ stay in the tree!
 
 > Dev debug mode which will open another pane for debugging.
 
-    set -g @treemux-enable-debug-pane 1
+    set -g @treemux-enable-debug-pane #
+
+> Specify the colorscheme to use (default: `tokyonight-night`)
+
+    set -g @treemux-colorscheme 'tokyonight-night'

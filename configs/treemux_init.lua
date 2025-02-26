@@ -161,5 +161,20 @@ require("lazy").setup({
   },
 })
 
-vim.cmd [[ colorscheme tokyonight-night ]]
+local function get_tmux_option(option, default_value)
+  local handle = io.popen("tmux show-option -gqv " .. option)
+  local option_value = handle:read("*a"):gsub("%s+", "")
+  handle:close()
+  if option_value == "" then
+    return default_value
+  else
+    return option_value
+  end
+end
+
+local colorscheme = get_tmux_option("@treemux-colorscheme", "tokyonight-night")
+
+-- Set the colorscheme
+vim.cmd("colorscheme " .. colorscheme)
+
 vim.o.cursorline = true
