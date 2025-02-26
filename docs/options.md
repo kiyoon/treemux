@@ -17,8 +17,7 @@ environment.
 
     set -g @treemux-editor-position 'bottom'
 
-> I don't like the default 'prefix + Tab' key binding. Can I change it to be
-> 'prefix + e'?
+> I don't like the default 'prefix + Tab' key binding. Can I change it to be 'prefix + e'?
 
     set -g @treemux-tree 'e'
 
@@ -26,18 +25,15 @@ environment.
 
     set -g @treemux-tree-focus 'w'
 
-> The default sidebar width is 40 columns. I want the sidebar to be wider by
-> default!
+> The default sidebar width is 40 columns. I want the sidebar to be wider by default!
 
     set -g @treemux-tree-width 60
 
-> The default editor size is 70%. I want the nvim editor pane to be wider by
-> default!
+> The default editor size is 70%. I want the nvim editor pane to be wider by default!
 
     set -g @treemux-editor-size '80%'
 
-> When I open a file from the tree, the focus moves to the editor. I want to
-> stay in the tree!
+> When I open a file from the tree, the focus moves to the editor. I want to stay in the tree!
 
     set -g @treemux-open-focus 'tree'
 
