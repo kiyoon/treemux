@@ -6,7 +6,7 @@ Nothing has been this close to an IDE!
 with additional cool features like:
 
 - Automatic updates on Nvim-Tree as you change directory in shell.
-- Nvim-Tree to shell interaction possible with [tmuxsend.vim](https://github.com/kiyoon/tmuxsend.vim).
+- Nvim-Tree to shell interaction possible with [tmux-send.nvim](https://github.com/kiyoon/tmux-send.nvim).
   - You can copy absolute path from Nvim-Tree and paste into the shell.
   - Change directory, execute programs, open with vim and anything you can imagine!
 - Open files from Nvim-Tree to Neovim seamlessly, using [nvim-tree-remote.nvim](https://github.com/kiyoon/nvim-tree-remote.nvim).
