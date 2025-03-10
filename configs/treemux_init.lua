@@ -54,7 +54,7 @@ end
 
 require("lazy").setup({
   {
-    "kiyoon/tmuxsend.vim",
+    "kiyoon/tmux-send.nvim",
     keys = {
       {
         "-",
