@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [v0.2.0] - 2025-08-11
+### :key: Key Features
+- Support for [Neo-Tree](https://github.com/nvim-neo-tree/neo-tree.nvim)
+- Switch to [Oil.nvim](https://github.com/stevearc/oil.nvim) to easily move files and going back to the original tree
+
 ### :boom: BREAKING CHANGES
 - due to [`c936b69`](https://github.com/kiyoon/treemux/commit/c936b697ce5f46d6bae390ffc79295c2aa6cab2c) - make /usr/bin/python3 default *(commit by [@kiyoon](https://github.com/kiyoon))*:
 
