@@ -11,6 +11,7 @@ with additional cool features like:
   - Change directory, execute programs, open with vim and anything you can imagine!
 - Open files from Nvim-Tree/Neo-Tree to Neovim seamlessly, using [nvim-tree-remote.nvim](https://github.com/kiyoon/nvim-tree-remote.nvim).
   - Just open the files (double click) and it will show up in another Neovim!
+- Switch to [Oil.nvim](https://github.com/stevearc/oil.nvim) and go back to the Nvim-Tree/Neo-Tree with `<space>o` key binding.
 
 <img src="https://user-images.githubusercontent.com/12980409/210149162-bdfdbed7-c2e7-4616-bcaa-9d83dedda7e3.gif" width="100%"/>
 
