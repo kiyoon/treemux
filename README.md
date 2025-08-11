@@ -2,21 +2,21 @@
 
 Nothing has been this close to an IDE!
 
-`Treemux` opens a sidebar with Neovim's [Nvim-Tree](https://github.com/nvim-tree/nvim-tree.lua) file explorer,
+`Treemux` opens a sidebar with Neovim's [Nvim-Tree](https://github.com/nvim-tree/nvim-tree.lua) or [Neo-Tree](https://github.com/nvim-neo-tree/neo-tree.nvim) file explorer,
 with additional cool features like:
 
-- Automatic updates on Nvim-Tree as you change directory in shell.
-- Nvim-Tree to shell interaction possible with [tmux-send.nvim](https://github.com/kiyoon/tmux-send.nvim).
-  - You can copy absolute path from Nvim-Tree and paste into the shell.
+- Automatic updates on Nvim-Tree/Neo-Tree as you change directory in shell.
+- Nvim-Tree/Neo-Tree to shell interaction possible with [tmux-send.nvim](https://github.com/kiyoon/tmux-send.nvim).
+  - You can copy absolute path from Nvim-Tree/Neo-Tree and paste into the shell.
   - Change directory, execute programs, open with vim and anything you can imagine!
-- Open files from Nvim-Tree to Neovim seamlessly, using [nvim-tree-remote.nvim](https://github.com/kiyoon/nvim-tree-remote.nvim).
+- Open files from Nvim-Tree/Neo-Tree to Neovim seamlessly, using [nvim-tree-remote.nvim](https://github.com/kiyoon/nvim-tree-remote.nvim).
   - Just open the files (double click) and it will show up in another Neovim!
 
 <img src="https://user-images.githubusercontent.com/12980409/210149162-bdfdbed7-c2e7-4616-bcaa-9d83dedda7e3.gif" width="100%"/>
 
 Of course you also get:
 
-- All features from Nvim-Tree:
+- All features from Nvim-Tree/Neo-Tree:
   - **mouse click**
   - **automatic refresh**
   - **file icons**
@@ -50,6 +50,7 @@ NOTE: Instant IDE modes are deprecated. Now you can just open a file from the tr
 Add plugin to the list of TPM plugins in `.tmux.conf`:
 
 ```tmux
+set -g @treemux-tree-client 'nvim-tree'  # or 'neo-tree'
 set -g @treemux-tree-nvim-init-file '~/.tmux/plugins/treemux/configs/treemux_init.lua'
 set -g @plugin 'kiyoon/treemux'
 ```
