@@ -3,6 +3,10 @@
 Customise `treemux` by placing options in `.tmux.conf` and reloading Tmux
 environment.
 
+> What if I want to use `neo-tree` instead of `nvim-tree`? (default: nvim-tree)
+
+    set -g @treemux-tree-client 'neo-tree'
+
 > Can I change the refresh rate? (default: 0.5, 2, 5)
 
     set -g @treemux-refresh-interval 0.1			# the focus is on the main pane or the side Nvim-Tree.

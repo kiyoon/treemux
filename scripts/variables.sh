@@ -48,6 +48,9 @@ OPEN_FOCUS_OPTION="@treemux-open-focus"
 ENABLE_DEBUG_PANE="0"
 ENABLE_DEBUG_PANE_OPTION="@treemux-enable-debug-pane"
 
+TREE_CLIENT="nvim-tree"
+TREE_CLIENT_OPTION="@treemux-tree-client"
+
 SUPPORTED_TMUX_VERSION="1.9"
 
 sidebar_dir() {

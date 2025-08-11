@@ -59,39 +59,37 @@ then
 	exit 102
 fi
 
-echo "Updating side pane (Nvim-Tree, pid = $side_pane_pid)"
+echo "Updating side pane (Nvim-Tree/Neo-Tree, pid = $side_pane_pid)"
 
 echo "Initial main pane cwd: $main_pane_prevcwd"
-echo "Initial nvim-tree pane root: $SIDE_PANE_ROOT"
-echo "Waiting for the nvim-tree.."
-nvimtree_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/wait_nvimtreeinit_and_open_dir.py" "$NVIM_ADDR" "$main_pane_prevcwd" "$SIDE_PANE_ROOT")
+echo "Initial nvim-tree/neo-tree pane root: $SIDE_PANE_ROOT"
+echo "Waiting for the nvim-tree/neo-tree.."
+tree_filetype=$("$PYTHON_COMMAND" "$CURRENT_DIR/wait_treeinit.py" "$NVIM_ADDR")
 exit_code=$?
 if [[ $exit_code -ne 0 ]]
 then
-	echo "$CURRENT_DIR/wait_nvimtreeinit_and_open_dir.py exited with code $exit_code."
+	echo "$CURRENT_DIR/wait_treeinit.py exited with code $exit_code."
 	if [[ $exit_code -eq 50 ]]
 	then
-		echo "pynvim not installed. Continuing without pynvim but recommended to install it."
-		sleep 2
+		echo "pynvim not installed. Exiting.."
+        exit 106
 	elif [[ $exit_code -eq 51 ]]
 	then
 		echo "Nvim is not installed or could not be loaded. Exiting.."
 		exit 103
 	elif [[ $exit_code -eq 52 ]]
 	then
-		echo "Nvim-Tree is not installed or could not be loaded. Exiting.."
-		echo "$nvimtree_root_dir"	# error message
+		echo "Nvim-Tree/Neo-Tree is not installed or could not be loaded. Exiting.."
 		exit 104
 	else
 		echo "Unknown error. Exiting.."
-		echo "$nvimtree_root_dir"	# error message
 		exit 105
 	fi
-else
-	echo "Nvim-Tree detected!"
-	echo "Detected side pane root: $nvimtree_root_dir"
-	side_pane_root="$nvimtree_root_dir"
 fi
+tree_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_random_within_rootdir.py" "$NVIM_ADDR" "$main_pane_prevcwd" "$SIDE_PANE_ROOT")
+echo "$tree_filetype detected!"
+echo "Detected side pane root: $tree_root_dir"
+side_pane_root="$tree_root_dir"
 
 while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 	# optional: check if sidebar is running `nvim .`
@@ -128,15 +126,9 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 		then
 			# Root completely changed
 			echo "Root changed: $main_pane_cwd"
-			"$PYTHON_COMMAND" "$CURRENT_DIR/change_root.py" "$NVIM_ADDR" "$main_pane_cwd"
 
-			if [[ $? -ne 0 ]]; then
-				echo "Error using pynvim. Trying tmux send-keys."
-				tmux send-keys -t "$SIDE_PANE_ID" \
-					Escape ":lua << EOF" Enter \
-					"nt_api = require('nvim-tree.api')" Enter \
-					"nt_api.tree.change_root('$main_pane_cwd')" Enter \
-					"EOF" Enter
+			if ! "$PYTHON_COMMAND" "$CURRENT_DIR/change_root.py" "$NVIM_ADDR" "$main_pane_cwd"; then
+				echo "Error on change_root.py"
 			fi
 			side_pane_root="$main_pane_cwd"
 		else
@@ -151,23 +143,7 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_random_within_rootdir.py" "$NVIM_ADDR" "$main_pane_cwd" "$side_pane_root")
 
 				if [[ $? -ne 0 ]]; then
-					echo "Error using pynvim. Trying tmux send-keys."
-					tmux send-keys -t "$SIDE_PANE_ID" \
-						Escape ":lua << EOF" Enter \
-						"nt_api = require('nvim-tree.api')" Enter \
-						"nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"if nt_node ~= nil then" Enter \
-						"  if nt_node.absolute_path ~= '$main_pane_cwd' then" Enter \
-						"    nt_api.tree.change_root('$side_pane_root')" Enter \
-						"    nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"    local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"  e" nd Enter \
-						"  if not nt_node.open then" Enter \
-						"    nt_api.node.open.edit()" Enter \
-						"  e" nd Enter \
-						"e" nd Enter \
-						"EOF" Enter
+					echo "Error on go_random_within_rootdir.py"
 				else
 					side_pane_root="$new_root_dir"
 				fi
@@ -180,26 +156,9 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 				main_pane_first_child="$main_pane_cwd/${main_pane_child_dir%%/*}"
 				echo "Closing directory: $main_pane_first_child"
 				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_parent.py" "$NVIM_ADDR" "$main_pane_first_child" "$side_pane_root")
-
 				
 				if [[ $? -ne 0 ]]; then
-					echo "Error using pynvim. Trying tmux send-keys."
-					tmux send-keys -t "$SIDE_PANE_ID" \
-						Escape ":lua << EOF" Enter \
-						"nt_api = require('nvim-tree.api')" Enter \
-						"nt_api.tree.find_file('$main_pane_first_child')" Enter \
-						"local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"if nt_node ~= nil then" Enter \
-						"  if nt_node.absolute_path ~= '$main_pane_first_child' then" Enter \
-						"    nt_api.tree.change_root('$side_pane_root')" Enter \
-						"    nt_api.tree.find_file('$main_pane_first_child')" Enter \
-						"    local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"  e" nd Enter \
-						"  if nt_node.open then" Enter \
-						"    nt_api.node.open.edit()" Enter \
-						"  e" nd Enter \
-						"e" nd Enter \
-						"EOF" Enter
+					echo "Error on go_parent.py"
 				else
 					side_pane_root="$new_root_dir"
 				fi
@@ -208,24 +167,7 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_random_within_rootdir.py" "$NVIM_ADDR" "$main_pane_cwd" "$side_pane_root")
 
 				if [[ $? -ne 0 ]]; then
-					echo "Error using pynvim. Trying tmux send-keys."
-					tmux send-keys -t "$SIDE_PANE_ID" \
-						Escape ":lua << EOF" Enter \
-						"nt_api = require('nvim-tree.api')" Enter \
-						"nt_api.tree.collapse_all()" Enter \
-						"nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"if nt_node ~= nil then" Enter \
-						"  if nt_node.absolute_path ~= '$main_pane_cwd' then" Enter \
-						"    nt_api.tree.change_root('$side_pane_root')" Enter \
-						"    nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"    local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"  e" nd Enter \
-						"  if not nt_node.open then" Enter \
-						"    nt_api.node.open.edit()" Enter \
-						"  e" nd Enter \
-						"e" nd Enter \
-						"EOF" Enter
+					echo "Error on go_random_within_rootdir.py"
 				else
 					side_pane_root="$new_root_dir"
 				fi
