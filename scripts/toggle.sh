@@ -22,6 +22,7 @@ REFRESH_INTERVAL_INACTIVE_PANE="$(echo "$ARGS"    | cut -d',' -f11)"   # "2"
 REFRESH_INTERVAL_INACTIVE_WINDOW="$(echo "$ARGS"    | cut -d',' -f12)"   # "5"
 ENABLE_DEBUG_PANE="$(echo "$ARGS"    | cut -d',' -f13)"   # "0"
 FOCUS="$(echo "$ARGS"    | cut -d',' -f14)"   # "focus"
+TREE_CLIENT="$(echo "$ARGS" | cut -d',' -f15)" # "nvim-tree" or "neo-tree"
 
 # If you add arguments, make sure you change from kill_sidebar() as well.
 

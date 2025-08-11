@@ -64,3 +64,7 @@ open_focus() {
 enable_debug_pane() {
 	get_tmux_option "$ENABLE_DEBUG_PANE_OPTION" "$ENABLE_DEBUG_PANE"
 }
+
+tree_client() {
+	get_tmux_option "$TREE_CLIENT_OPTION" "$TREE_CLIENT"
+}
