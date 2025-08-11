@@ -169,33 +169,34 @@ split_sidebar_left() {
 	# -u parameter is compatible with MacOS and Linux.
 	nvim_addr="$(mktemp -u -t kiyoon-tmux-treemux-$PANE_ID.XXXXXX)"
 
-	if [[ -z "$TREE_NVIM_INIT_FILE" ]]
-	then
-		local sidebar_id="$(tmux new-window -c "$NVIMTREE_ROOT_DIR" -P -F "#{pane_id}" \
-			"$NVIM_COMMAND '$NVIMTREE_ROOT_DIR' --listen '$nvim_addr' \
-			'+lua require(\"nvim-tree.api\").tree.open({current_window = true})' \
-			'+let g:nvim_tree_remote_tmux_pane=\"$PANE_ID\"' \
+    common_args="'+let g:nvim_tree_remote_tmux_pane=\"$PANE_ID\"' \
 			'+let g:nvim_tree_remote_tmux_split_position=\"$EDITOR_POSITION\"' \
 			'+let g:nvim_tree_remote_tmux_split_size=\"$EDITOR_SIZE\"' \
 			'+let g:nvim_tree_remote_tmux_focus=\"$OPEN_FOCUS\"' \
 			'+let g:nvim_tree_remote_tmux_editor_init_file=\"$EDITOR_NVIM_INIT_FILE\"' \
 			'+let g:nvim_tree_remote_treemux_path=\"$CURRENT_DIR/..\"' \
-			'+let g:nvim_tree_remote_python_path=\"$PYTHON_COMMAND\"' \
-			")"
-	else
-		local sidebar_id="$(tmux new-window -c "$NVIMTREE_ROOT_DIR" -P -F "#{pane_id}" \
-			"$NVIM_COMMAND '$NVIMTREE_ROOT_DIR' --listen '$nvim_addr' \
-			'+lua require(\"nvim-tree.api\").tree.open({current_window = true})' \
-			'+let g:nvim_tree_remote_tmux_pane=\"$PANE_ID\"' \
-			'+let g:nvim_tree_remote_tmux_split_position=\"$EDITOR_POSITION\"' \
-			'+let g:nvim_tree_remote_tmux_split_size=\"$EDITOR_SIZE\"' \
-			'+let g:nvim_tree_remote_tmux_focus=\"$OPEN_FOCUS\"' \
-			'+let g:nvim_tree_remote_tmux_editor_init_file=\"$EDITOR_NVIM_INIT_FILE\"' \
-			'+let g:nvim_tree_remote_treemux_path=\"$CURRENT_DIR/..\"' \
-			'+let g:nvim_tree_remote_python_path=\"$PYTHON_COMMAND\"' \
-			-u '$TREE_NVIM_INIT_FILE' \
-			")"
-	fi
+            "
+
+    if [[ -n "$TREE_NVIM_INIT_FILE" ]]
+    then
+        common_args="$common_args -u '$TREE_NVIM_INIT_FILE' "
+    fi
+
+    if [[ "$TREE_CLIENT" == "nvim-tree" ]]
+    then
+        common_args="$common_args '+lua require(\"nvim-tree.api\").tree.open({current_window = true})'"
+    elif [[ "$TREE_CLIENT" == "neo-tree" ]]
+    then
+        # HACK: using `:Neotree current` command makes the tree incompletely initialized.
+        # So we open on the side and close the default empty window instead.
+        common_args="$common_args +Neotree '+lua vim.api.nvim_win_close(1000, false)'"
+    else
+        echo "Unknown TREE_CLIENT: $TREE_CLIENT"
+        exit 1
+    fi
+
+    local sidebar_id="$(tmux new-window -c "$NVIMTREE_ROOT_DIR" -P -F "#{pane_id}" \
+        "$NVIM_COMMAND '$NVIMTREE_ROOT_DIR' --listen '$nvim_addr' ${common_args}")"
 
 	tmux join-pane -hb -l "$sidebar_size" -t "$PANE_ID" -s "$sidebar_id"
 
@@ -218,33 +219,28 @@ split_sidebar_right() {
 	# -u parameter is compatible with MacOS and Linux.
 	nvim_addr="$(mktemp -u -t kiyoon-tmux-treemux-$PANE_ID.XXXXXX)"
 
-	if [[ -z "$TREE_NVIM_INIT_FILE" ]]
-	then
-		local sidebar_id="$(tmux split-window -h -l "$sidebar_size" -c "$NVIMTREE_ROOT_DIR" -P -F "#{pane_id}" \
-			"$NVIM_COMMAND '$NVIMTREE_ROOT_DIR' --listen '$nvim_addr' \
-			'+lua require(\"nvim-tree.api\").tree.open({current_window = true})' \
-			'+let g:nvim_tree_remote_tmux_pane=\"$PANE_ID\"' \
+    common_args="'+let g:nvim_tree_remote_tmux_pane=\"$PANE_ID\"' \
 			'+let g:nvim_tree_remote_tmux_split_position=\"$EDITOR_POSITION\"' \
 			'+let g:nvim_tree_remote_tmux_split_size=\"$EDITOR_SIZE\"' \
 			'+let g:nvim_tree_remote_tmux_focus=\"$OPEN_FOCUS\"' \
 			'+let g:nvim_tree_remote_tmux_editor_init_file=\"$EDITOR_NVIM_INIT_FILE\"' \
 			'+let g:nvim_tree_remote_treemux_path=\"$CURRENT_DIR/..\"' \
-			'+let g:nvim_tree_remote_python_path=\"$PYTHON_COMMAND\"' \
-			")"
-	else
-		local sidebar_id="$(tmux split-window -h -l "$sidebar_size" -c "$NVIMTREE_ROOT_DIR" -P -F "#{pane_id}" \
-			"$NVIM_COMMAND '$NVIMTREE_ROOT_DIR' --listen '$nvim_addr' \
-			'+lua require(\"nvim-tree.api\").tree.open({current_window = true})' \
-			'+let g:nvim_tree_remote_tmux_pane=\"$PANE_ID\"' \
-			'+let g:nvim_tree_remote_tmux_split_position=\"$EDITOR_POSITION\"' \
-			'+let g:nvim_tree_remote_tmux_split_size=\"$EDITOR_SIZE\"' \
-			'+let g:nvim_tree_remote_tmux_focus=\"$OPEN_FOCUS\"' \
-			'+let g:nvim_tree_remote_tmux_editor_init_file=\"$EDITOR_NVIM_INIT_FILE\"' \
-			'+let g:nvim_tree_remote_treemux_path=\"$CURRENT_DIR/..\"' \
-			'+let g:nvim_tree_remote_python_path=\"$PYTHON_COMMAND\"' \
-			-u '$TREE_NVIM_INIT_FILE' \
-			")"
-	fi
+            "
+    if [[ "$TREE_CLIENT" == "nvim-tree" ]]
+    then
+        common_args="$common_args '+lua require('nvim-tree.api').tree.open({current_window = true})'"
+    elif [[ "$TREE_CLIENT" == "neo-tree" ]]
+    then
+        # HACK: using `:Neotree current` command makes the tree incompletely initialized.
+        # So we open on the side and close the default empty window instead.
+        common_args="$common_args +Neotree '+lua vim.api.nvim_win_close(1000, false)'"
+    else
+        echo "Unknown TREE_CLIENT: $TREE_CLIENT"
+        exit 1
+    fi
+
+    local sidebar_id="$(tmux split-window -h -l "$sidebar_size" -c "$NVIMTREE_ROOT_DIR" -P -F "#{pane_id}" \
+        "$NVIM_COMMAND '$NVIMTREE_ROOT_DIR' --listen '$nvim_addr' ${common_args}")"
 
 	if [[ $ENABLE_DEBUG_PANE -eq 0 ]]
 	then
