@@ -14,6 +14,10 @@ with additional cool features like:
 
 <img src="https://user-images.githubusercontent.com/12980409/210149162-bdfdbed7-c2e7-4616-bcaa-9d83dedda7e3.gif" width="100%"/>
 
+> [!NOTE]
+> If you use Neo-Tree, you can open file on the main pane with `t` key binding instead of `o` for Nvim-Tree.
+> This is to avoid replacing default key bindings of Neo-Tree, which is `o` for sorting files.
+
 Of course you also get:
 
 - All features from Nvim-Tree/Neo-Tree:
