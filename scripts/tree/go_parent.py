@@ -1,6 +1,7 @@
 #!/use/bin/env python3
 
 import sys
+import time
 from pathlib import Path
 
 import pynvim
@@ -46,7 +47,15 @@ local function reveal_and_close_dir(new_root, reveal_dir)
 
   local function on_ok()
     local node = state.tree:get_node()
+
     if not node or node.type ~= "directory" or node.path ~= reveal_dir then
+      -- if you called this function correctly where the reveal_dir is a subdirectory of new_root,
+      -- then maybe the file is hidden, so we need to unhide them.
+      if not state.filtered_items.visible then
+        fs_cmds.toggle_hidden(state)
+        filesystem.navigate(state, new_root, reveal_dir, on_ok)
+      end
+
       return
     end
 
@@ -83,9 +92,11 @@ if filetype == "NvimTree":
         nvim.exec_lua("return require('nvim-tree.api').tree.get_nodes().absolute_path")
     )  # print new root dir
 elif filetype == "neo-tree":
+    # NOTE: this doesn't work with :Neotree current. Always use :Neotree
     root_dir = nvim.exec_lua(
         "return require('neo-tree.sources.manager').get_state('filesystem').path"
     )
+
     # 1. main_pane_first_child is within the root dir. Do not change root and just close the dir.
     if main_pane_first_child.is_relative_to(root_dir):
         nvim.exec_lua(lua_code_neotree, root_dir, str(main_pane_first_child))
