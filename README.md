@@ -45,6 +45,14 @@ Tested and working on Linux, MacOS and Windows WSL2.
 
 NOTE: Instant IDE modes are deprecated. Now you can just open a file from the tree without entering this mode.
 
+### Using neo-tree
+
+By default, `treemux` uses `nvim-tree` as the file tree explorer. You can also use `neo-tree` by setting the following option in your `.tmux.conf` file:
+
+```tmux
+set -g @treemux-tree-client 'neo-tree'
+```
+
 ### Installation with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm)
 
 Add plugin to the list of TPM plugins in `.tmux.conf`:

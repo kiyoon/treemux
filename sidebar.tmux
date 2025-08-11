@@ -12,6 +12,7 @@ set_default_key_binding_options() {
 	local tree_nvim_init_file="$(tree_nvim_init_file)"
 	local editor_nvim_init_file="$(editor_nvim_init_file)"
 	local python_command="$(python_command)"
+	local tree_client="$(tree_client)"
 	local tree_key="$(tree_key)"
 	local tree_focus_key="$(tree_focus_key)"
 	local tree_position="$(tree_position)"
@@ -24,8 +25,10 @@ set_default_key_binding_options() {
 	local refresh_interval_inactive_window="$(refresh_interval_inactive_window)"
 	local enable_debug_pane="$(enable_debug_pane)"
 
-	set_tmux_option "${VAR_KEY_PREFIX}-${tree_key}" "${nvim_command},${tree_nvim_init_file},${editor_nvim_init_file},${python_command},${tree_position},${tree_width},${editor_position},${editor_size},${open_focus},${refresh_interval},${refresh_interval_inactive_pane},${refresh_interval_inactive_window},${enable_debug_pane}"
-	set_tmux_option "${VAR_KEY_PREFIX}-${tree_focus_key}" "${nvim_command},${tree_nvim_init_file},${editor_nvim_init_file},${python_command},${tree_position},${tree_width},${editor_position},${editor_size},${open_focus},${refresh_interval},${refresh_interval_inactive_pane},${refresh_interval_inactive_window},${enable_debug_pane},focus"
+	local args="--nvim-command '$nvim_command' --tree-nvim-init-file '$tree_nvim_init_file' --editor-nvim-init-file '$editor_nvim_init_file' --python-command '$python_command' --tree-client '$tree_client' --position '$tree_position' --size '$tree_width' --editor-position '$editor_position' --editor-size '$editor_size' --open-focus '$open_focus' --refresh-interval '$refresh_interval' --refresh-interval-inactive-pane '$refresh_interval_inactive_pane' --refresh-interval-inactive-window '$refresh_interval_inactive_window' --enable-debug-pane '$enable_debug_pane'"
+
+	set_tmux_option "${VAR_KEY_PREFIX}-${tree_key}" "$args"
+	set_tmux_option "${VAR_KEY_PREFIX}-${tree_focus_key}" "$args --focus focus"
 }
 
 set_key_bindings() {
@@ -34,7 +37,7 @@ set_key_bindings() {
 	for option in $stored_key_vars; do
 		key="$(get_key_from_option_name "$option")"
 		value="$(get_value_from_option_name "$option")"
-		tmux bind-key "$key" run-shell "$SCRIPTS_DIR/toggle.sh '$value' '#{pane_id}'"
+		tmux bind-key "$key" run-shell "python3 $SCRIPTS_DIR/toggle.py $value --pane-id '#{pane_id}'"
 	done
 }
 

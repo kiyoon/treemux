@@ -50,6 +50,10 @@ stay in the tree!
 
     set -g @treemux-python-command '/path/to/python3'
 
+> Specify the file tree client to use (default: `nvim-tree`)
+
+    set -g @treemux-tree-client 'neo-tree'
+
 > Dev debug mode which will open another pane for debugging.
 
     set -g @treemux-enable-debug-pane 1

@@ -33,6 +33,10 @@ python_command() {
 	get_tmux_option "$PYTHON_COMMAND_OPTION" "$PYTHON_COMMAND"
 }
 
+tree_client() {
+	get_tmux_option "$TREE_CLIENT_OPTION" "$TREE_CLIENT"
+}
+
 tree_key() {
 	get_tmux_option "$TREE_OPTION" "$TREE_KEY"
 }

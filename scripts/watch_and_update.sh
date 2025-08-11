@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Author: Kiyoon Kim (https://github.com/kiyoon)
 
-if [[ $# -ne 9 ]]; then
-	echo "Usage: $0 <MAIN_PANE_ID> <SIDE_PANE_ID> <SIDE_PANE_ROOT> <NVIM_ADDR> <REFRESH_INTERVAL> <REFRESH_INTERVAL_INACTIVE_PANE> <REFRESH_INTERVAL_INACTIVE_WINDOW> <NVIM_COMMAND> <PYTHON_COMMAND>"
+if [[ $# -ne 10 ]]; then
+	echo "Usage: $0 <MAIN_PANE_ID> <SIDE_PANE_ID> <SIDE_PANE_ROOT> <NVIM_ADDR> <REFRESH_INTERVAL> <REFRESH_INTERVAL_INACTIVE_PANE> <REFRESH_INTERVAL_INACTIVE_WINDOW> <NVIM_COMMAND> <PYTHON_COMMAND> <TREE_CLIENT>"
 	echo "Arthor: Kiyoon Kim (https://github.com/kiyoon)"
-	echo "Track directory changes in the main pane, and refresh the side pane's Nvim-Tree every <REFRESH_INTERVAL> seconds."
+	echo "Track directory changes in the main pane, and refresh the side pane's file tree every <REFRESH_INTERVAL> seconds."
 	echo "When going into child directories (cd dir), the side pane will keep the root directory."
 	echo "When going out of the root directory (cd /some/dir), the side pane will change the root directory to that of the main pane."
 	exit 100
@@ -23,6 +23,7 @@ REFRESH_INTERVAL_INACTIVE_PANE="$6"
 REFRESH_INTERVAL_INACTIVE_WINDOW="$7"
 NVIM_COMMAND="$8"
 PYTHON_COMMAND="$9"
+TREE_CLIENT="${10}"
 
 echo "$NVIM_COMMAND"
 
@@ -63,8 +64,12 @@ echo "Updating side pane (Nvim-Tree, pid = $side_pane_pid)"
 
 echo "Initial main pane cwd: $main_pane_prevcwd"
 echo "Initial nvim-tree pane root: $SIDE_PANE_ROOT"
-echo "Waiting for the nvim-tree.."
-nvimtree_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/wait_nvimtreeinit_and_open_dir.py" "$NVIM_ADDR" "$main_pane_prevcwd" "$SIDE_PANE_ROOT")
+echo "Waiting for the file tree.."
+if [ "$TREE_CLIENT" == "neo-tree" ]; then
+	root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/neotree/get_root.py" "$NVIM_ADDR")
+else
+	root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/nvimtree/wait_nvimtreeinit_and_open_dir.py" "$NVIM_ADDR" "$main_pane_prevcwd" "$SIDE_PANE_ROOT")
+fi
 exit_code=$?
 if [[ $exit_code -ne 0 ]]
 then
@@ -79,18 +84,18 @@ then
 		exit 103
 	elif [[ $exit_code -eq 52 ]]
 	then
-		echo "Nvim-Tree is not installed or could not be loaded. Exiting.."
-		echo "$nvimtree_root_dir"	# error message
+		echo "File tree is not installed or could not be loaded. Exiting.."
+		echo "$root_dir"	# error message
 		exit 104
 	else
 		echo "Unknown error. Exiting.."
-		echo "$nvimtree_root_dir"	# error message
+		echo "$root_dir"	# error message
 		exit 105
 	fi
 else
-	echo "Nvim-Tree detected!"
-	echo "Detected side pane root: $nvimtree_root_dir"
-	side_pane_root="$nvimtree_root_dir"
+	echo "File tree detected!"
+	echo "Detected side pane root: $root_dir"
+	side_pane_root="$root_dir"
 fi
 
 while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
@@ -128,15 +133,11 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 		then
 			# Root completely changed
 			echo "Root changed: $main_pane_cwd"
-			"$PYTHON_COMMAND" "$CURRENT_DIR/change_root.py" "$NVIM_ADDR" "$main_pane_cwd"
+			"$PYTHON_COMMAND" "$CURRENT_DIR/change_root.py" "$NVIM_ADDR" "$main_pane_cwd" "$TREE_CLIENT"
 
 			if [[ $? -ne 0 ]]; then
 				echo "Error using pynvim. Trying tmux send-keys."
-				tmux send-keys -t "$SIDE_PANE_ID" \
-					Escape ":lua << EOF" Enter \
-					"nt_api = require('nvim-tree.api')" Enter \
-					"nt_api.tree.change_root('$main_pane_cwd')" Enter \
-					"EOF" Enter
+				"$CURRENT_DIR/send_keys.sh" "$SIDE_PANE_ID" "$main_pane_cwd" "$TREE_CLIENT" "change_root"
 			fi
 			side_pane_root="$main_pane_cwd"
 		else
@@ -148,26 +149,11 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 				# If find file is not successful (possibly the user changed the root directory), change the root directory and find again
 				
 				echo "Opening directory: $main_pane_cwd"
-				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_random_within_rootdir.py" "$NVIM_ADDR" "$main_pane_cwd" "$side_pane_root")
+				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_to_child.py" "$NVIM_ADDR" "$main_pane_cwd" "$side_pane_root" "$TREE_CLIENT")
 
 				if [[ $? -ne 0 ]]; then
 					echo "Error using pynvim. Trying tmux send-keys."
-					tmux send-keys -t "$SIDE_PANE_ID" \
-						Escape ":lua << EOF" Enter \
-						"nt_api = require('nvim-tree.api')" Enter \
-						"nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"if nt_node ~= nil then" Enter \
-						"  if nt_node.absolute_path ~= '$main_pane_cwd' then" Enter \
-						"    nt_api.tree.change_root('$side_pane_root')" Enter \
-						"    nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"    local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"  e" nd Enter \
-						"  if not nt_node.open then" Enter \
-						"    nt_api.node.open.edit()" Enter \
-						"  e" nd Enter \
-						"e" nd Enter \
-						"EOF" Enter
+					"$CURRENT_DIR/send_keys.sh" "$SIDE_PANE_ID" "$main_pane_cwd" "$TREE_CLIENT" "go_to_child"
 				else
 					side_pane_root="$new_root_dir"
 				fi
@@ -179,53 +165,22 @@ while [[ $main_pane_exists -eq 1 ]] && [[ $side_pane_exists -eq 1 ]]; do
 				main_pane_child_dir=${main_pane_prevcwd#$main_pane_cwd/}
 				main_pane_first_child="$main_pane_cwd/${main_pane_child_dir%%/*}"
 				echo "Closing directory: $main_pane_first_child"
-				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_parent.py" "$NVIM_ADDR" "$main_pane_first_child" "$side_pane_root")
+				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_to_parent.py" "$NVIM_ADDR" "$main_pane_first_child" "$side_pane_root" "$TREE_CLIENT")
 
 				
 				if [[ $? -ne 0 ]]; then
 					echo "Error using pynvim. Trying tmux send-keys."
-					tmux send-keys -t "$SIDE_PANE_ID" \
-						Escape ":lua << EOF" Enter \
-						"nt_api = require('nvim-tree.api')" Enter \
-						"nt_api.tree.find_file('$main_pane_first_child')" Enter \
-						"local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"if nt_node ~= nil then" Enter \
-						"  if nt_node.absolute_path ~= '$main_pane_first_child' then" Enter \
-						"    nt_api.tree.change_root('$side_pane_root')" Enter \
-						"    nt_api.tree.find_file('$main_pane_first_child')" Enter \
-						"    local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"  e" nd Enter \
-						"  if nt_node.open then" Enter \
-						"    nt_api.node.open.edit()" Enter \
-						"  e" nd Enter \
-						"e" nd Enter \
-						"EOF" Enter
+					"$CURRENT_DIR/send_keys.sh" "$SIDE_PANE_ID" "$main_pane_first_child" "$TREE_CLIENT" "go_to_parent"
 				else
 					side_pane_root="$new_root_dir"
 				fi
 			else
 				echo "Jumping to a random folder. Closing all directories and opening this one: $main_pane_cwd. Not changing root dir"
-				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_random_within_rootdir.py" "$NVIM_ADDR" "$main_pane_cwd" "$side_pane_root")
+				new_root_dir=$("$PYTHON_COMMAND" "$CURRENT_DIR/go_to_child.py" "$NVIM_ADDR" "$main_pane_cwd" "$side_pane_root" "$TREE_CLIENT")
 
 				if [[ $? -ne 0 ]]; then
 					echo "Error using pynvim. Trying tmux send-keys."
-					tmux send-keys -t "$SIDE_PANE_ID" \
-						Escape ":lua << EOF" Enter \
-						"nt_api = require('nvim-tree.api')" Enter \
-						"nt_api.tree.collapse_all()" Enter \
-						"nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"if nt_node ~= nil then" Enter \
-						"  if nt_node.absolute_path ~= '$main_pane_cwd' then" Enter \
-						"    nt_api.tree.change_root('$side_pane_root')" Enter \
-						"    nt_api.tree.find_file('$main_pane_cwd')" Enter \
-						"    local nt_node = nt_api.tree.get_node_under_cursor()" Enter \
-						"  e" nd Enter \
-						"  if not nt_node.open then" Enter \
-						"    nt_api.node.open.edit()" Enter \
-						"  e" nd Enter \
-						"e" nd Enter \
-						"EOF" Enter
+					"$CURRENT_DIR/send_keys.sh" "$SIDE_PANE_ID" "$main_pane_cwd" "$TREE_CLIENT" "go_to_child"
 				else
 					side_pane_root="$new_root_dir"
 				fi
