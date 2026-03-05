@@ -10,6 +10,8 @@ lua_code_nvimtree = """
 local main_pane_cwd, side_pane_root = ...
 local nt_api = require('nvim-tree.api')
 
+-- nvim-tree's find_file navigates to the parent directory if the target is
+-- already the root directory, so we early-return to avoid that.
 local initial_root_dir = nt_api.tree.get_nodes().absolute_path
 if initial_root_dir == main_pane_cwd then
   return
