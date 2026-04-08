@@ -189,7 +189,7 @@ split_sidebar_left() {
     then
         # HACK: using `:Neotree current` command makes the tree incompletely initialized.
         # So we open on the side and close the default empty window instead.
-        common_args="$common_args +Neotree '+lua vim.api.nvim_win_close(1000, false)'"
+        common_args="$common_args '+Neotree current reveal'"
     else
         echo "Unknown TREE_CLIENT: $TREE_CLIENT"
         exit 1
@@ -233,7 +233,7 @@ split_sidebar_right() {
     then
         # HACK: using `:Neotree current` command makes the tree incompletely initialized.
         # So we open on the side and close the default empty window instead.
-        common_args="$common_args +Neotree '+lua vim.api.nvim_win_close(1000, false)'"
+        common_args="$common_args '+Neotree current reveal'"
     else
         echo "Unknown TREE_CLIENT: $TREE_CLIENT"
         exit 1
