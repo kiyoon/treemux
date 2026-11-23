@@ -226,9 +226,15 @@ split_sidebar_right() {
 			'+let g:nvim_tree_remote_tmux_editor_init_file=\"$EDITOR_NVIM_INIT_FILE\"' \
 			'+let g:nvim_tree_remote_treemux_path=\"$CURRENT_DIR/..\"' \
             "
+
+    if [[ -n "$TREE_NVIM_INIT_FILE" ]]
+    then
+        common_args="$common_args -u '$TREE_NVIM_INIT_FILE' "
+    fi
+
     if [[ "$TREE_CLIENT" == "nvim-tree" ]]
     then
-        common_args="$common_args '+lua require('nvim-tree.api').tree.open({current_window = true})'"
+        common_args="$common_args '+lua require(\"nvim-tree.api\").tree.open({current_window = true})'"
     elif [[ "$TREE_CLIENT" == "neo-tree" ]]
     then
         # HACK: using `:Neotree current` command makes the tree incompletely initialized.
