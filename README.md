@@ -1,5 +1,8 @@
 # Treemux for Tmux
 
+> [!NOTE]
+> Try [Graffitty](https://github.com/graffitty/graffitty), my new terminal emulator with a shell-synchronized file tree and tmux-like tiling, session, and background server features.
+
 Nothing has been this close to an IDE!
 
 `Treemux` opens a sidebar with Neovim's [Nvim-Tree](https://github.com/nvim-tree/nvim-tree.lua) or [Neo-Tree](https://github.com/nvim-neo-tree/neo-tree.nvim) file explorer,
